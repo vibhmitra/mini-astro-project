@@ -2,7 +2,7 @@
 
 ---
 
-<button id="themeToggle">
+<button id="themeToggle" type="button">
     <svg width="30px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
         <path
             class="sun"
@@ -59,6 +59,7 @@
     }
 </style>
 
+<!-- Old Theme Toggle Script 
 <script is:inline>
 
 document.addEventListener('astro:page-load', () => {
@@ -108,3 +109,50 @@ document.addEventListener('astro:page-load', () => {
     document.addEventListener('astro:after-swap', applyTheme);
     applyTheme();
   </script>
+
+-->
+
+<script is:inline>
+    // 1. Theme application logic is centralized
+    const applyTheme = () => {
+        const theme = (() => {
+            if (typeof localStorage !== "undefined" && localStorage.getItem("theme")) {
+                return localStorage.getItem("theme");
+            }
+            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                return "dark";
+            }
+            return "light";
+        })();
+
+        if (theme === "light") {
+            document.documentElement.classList.remove("dark");
+        } else {
+            document.documentElement.classList.add("dark");
+        }
+        window.localStorage.setItem("theme", theme);
+    };
+
+    // 2. The click handler is fixed to prevent page refresh
+    const handleToggleClick = (e) => {
+        // *** THIS IS THE CRITICAL FIX ***
+        e.preventDefault(); 
+        
+        const element = document.documentElement;
+        const isDark = element.classList.toggle("dark"); // Toggles and returns if 'dark' is present
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+    };
+
+    // 3. Set up listeners and initial state
+    document.addEventListener('DOMContentLoaded', applyTheme);
+    document.addEventListener('astro:page-load', applyTheme);
+    document.addEventListener('astro:after-swap', applyTheme);
+
+    // Use a simple DOMContentLoaded check to attach the click listener once.
+    document.addEventListener('DOMContentLoaded', () => {
+        const toggleButton = document.getElementById("themeToggle");
+        if (toggleButton) {
+            toggleButton.addEventListener("click", handleToggleClick);
+        }
+    });
+</script>
